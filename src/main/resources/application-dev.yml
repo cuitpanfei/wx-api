@@ -1,0 +1,9 @@
+spring:
+  datasource:
+    username:
+    password:
+
+springfox:
+  documentation:
+    swagger-ui:
+      enabled: true

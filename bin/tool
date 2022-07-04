@@ -1,0 +1,95 @@
+#!/bin/sh
+
+APP_NAME=$(ls|grep "wx-api"|grep ".jar"|sed 's/.jar//g')
+JAVA_OPTS="-Xms256m -Xmx256m -Dfile.encoding=UTF-8"
+psid=0
+
+checkpid() {
+   javaps=$(pgrep -f "$APP_NAME")
+
+   if [ -n "$javaps" ]; then
+      psid=$javaps
+   else
+      psid=0
+   fi
+}
+
+start() {
+   checkpid
+
+   if [ $psid -ne 0 ]; then
+      echo "================================"
+      echo "warn: $APP_NAME already started! (pid=$psid)"
+      echo "================================"
+   else
+      echo "Starting $APP_NAME ..."
+      nohup java $JAVA_OPTS -jar $APP_NAME.jar --server.port=8088 >/dev/null 2>&1 &
+      sleep 1
+      checkpid
+      if [ $psid -ne 0 ]; then
+         echo "(pid=$psid) [OK]"
+      else
+         echo "[Failed]"
+      fi
+   fi
+}
+
+stop() {
+   checkpid
+
+   if [ $psid -ne 0 ]; then
+      echo -n "Stopping $APP_NAME ...(pid=$psid) "
+      kill -9 $psid
+
+      if [ $? -eq 0 ]; then
+         echo "[OK]"
+      else
+         echo "[Failed]"
+      fi
+
+      checkpid
+      if [ $psid -ne 0 ]; then
+         stop
+      fi
+   else
+      echo "================================"
+      echo "warn: $APP_NAME is not running"
+      echo "================================"
+   fi
+}
+
+status() {
+   checkpid
+   if [ $psid -ne 0 ];  then
+      echo "$APP_NAME is running! (pid=$psid)"
+   else
+      echo "$APP_NAME is not running"
+   fi
+}
+
+showlog() {
+    LOGS_DIR="/usr/local/wx/logs/"
+    tail -f $LOGS_DIR/$(ls $LOGS_DIR -t|grep "wx"|tail -n1)
+}
+
+case "$1" in
+   'start')
+      start
+      ;;
+   'stop')
+     stop
+     ;;
+   'restart')
+     stop
+     start
+     ;;
+   'status')
+     status
+     ;;
+   'log')
+     showlog
+     ;;
+  *)
+     echo "Usage: $0 {start | stop | restart | status | log}"
+     exit 1
+esac
