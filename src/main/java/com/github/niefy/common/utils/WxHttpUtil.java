@@ -168,8 +168,9 @@ public class WxHttpUtil {
         }
         if (ret != null && ret != 0) {
             StringBuilder sb = new StringBuilder();
-            req.form().forEach((k, v) -> sb.append(k).append(": ").append(v).append("\n"));
-            log.error("request:{},\n form:\n{}\n result err info: {}", req, sb, body);
+            Optional.ofNullable(req.form())
+                .ifPresent(form->form.forEach((k, v) -> sb.append(k).append(": ").append(v).append("\n")));
+	    log.error("request:{},\n form:\n{}\n result err info: {}", req, sb, body);
             throw new RRException(WxHtmlArticleRetErrCode.msg(ret), ret);
         }
     }
