@@ -126,7 +126,8 @@ public class SysOssController {
         sysOssService.save(ossEntity);
         url = wxMpService.getMaterialService().mediaImgUpload(tmpFile).getUrl();
         ossEntity.setMediaUrl(url);
-        FileUtil.del(tmpFile);
+        sysOssService.updateById(ossEntity);
+	FileUtil.del(tmpFile);
         return Result.ok().put("url", url);
     }
 
