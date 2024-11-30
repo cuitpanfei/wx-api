@@ -10,3 +10,5 @@ springfox:
   documentation:
     swagger-ui:
       enabled: false
+ksj:
+  token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczpcL1wvd3d3Lmtzamhhb2thLmNvbVwvYXBpXC9hZG1pblwvbG9naW4iLCJpYXQiOjE3MTEyOTIxMDYsImV4cCI6MTcxMTUwODEwNiwibmJmIjoxNzExMjkyMTA2LCJqdGkiOiJMOUNkSGVzQjVJSnBPTjZjIiwic3ViIjo5NzkxNSwicHJ2IjoiYzgyOTIyMzgzNWQxMTEzOGYwOGFjZTU2ZmZhNjYyOGJjMjY4M2NiNSIsInJvbGUiOiJhZG1pbiJ9.hWQS2xsDBtxLej9RhZeziXYfkbDgB1IgRzj_aja9Dgs

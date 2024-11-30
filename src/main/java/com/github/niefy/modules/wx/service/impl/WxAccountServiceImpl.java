@@ -13,6 +13,7 @@ import com.github.niefy.modules.wx.entity.WxAccount;
 import com.github.niefy.modules.wx.event.QrCodeScanChangeEvent;
 import com.github.niefy.modules.wx.event.QrCodeScanState;
 import com.github.niefy.modules.wx.service.WxAccountService;
+import com.github.niefy.modules.wx.task.WxMpCronTask;
 import lombok.extern.slf4j.Slf4j;
 import me.chanjar.weixin.mp.api.WxMpService;
 import me.chanjar.weixin.mp.config.WxMpConfigStorage;
@@ -39,6 +40,9 @@ public class WxAccountServiceImpl extends ServiceImpl<WxAccountMapper, WxAccount
     @Autowired
     WxMpService wxMpService;
 
+    @Autowired
+    WxMpCronTask task;
+
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
         String name = (String) params.get("name");
@@ -62,6 +66,10 @@ public class WxAccountServiceImpl extends ServiceImpl<WxAccountMapper, WxAccount
         logger.info("加载到{}条公众号配置", accountList.size());
         accountList.forEach(this::addAccountToRuntime);
         logger.info("公众号配置加载完成");
+
+        logger.info("同步手机卡推广信息");
+        task.syncKsj();
+        logger.info("同步手机卡推广信息完成");
     }
 
     @Override

@@ -93,14 +93,12 @@ public class MsgReplyRuleServiceImpl extends ServiceImpl<MsgReplyRuleMapper, Msg
     @Override
     public List<MsgReplyRule> getMatchedRules(String appid, boolean exactMatch, String keywords) {
         LocalTime now = LocalTime.now();
-	List<MsgReplyRule> list = this.getValidRules();
-        list = this.getValidRules().stream()
+	List<MsgReplyRule> list = this.getValidRules().stream()
                 .filter(rule -> !StringUtils.hasText(rule.getAppid()) || appid.equals(rule.getAppid())) // 检测是否是对应公众号的规则，如果appid为空则为通用规则
                 .filter(rule -> null == rule.getEffectTimeStart() || rule.getEffectTimeStart().toLocalTime().isBefore(now))// 检测是否在有效时段，effectTimeStart为null则一直有效
                 .filter(rule -> null == rule.getEffectTimeEnd() || rule.getEffectTimeEnd().toLocalTime().isAfter(now)) // 检测是否在有效时段，effectTimeEnd为null则一直有效
                 .filter(rule -> isMatch(exactMatch || rule.isExactMatch(), Optional.ofNullable(rule.getMatchValue()).orElse("").split(","), keywords)) //检测是否符合匹配规则
                 .collect(Collectors.toList());
-	list.add(msgReplyRuleMapper.selectById(-1)); //保证万能回复在最后一个选项
 	return list;
     }
 

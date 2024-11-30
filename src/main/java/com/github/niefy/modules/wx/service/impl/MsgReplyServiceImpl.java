@@ -22,7 +22,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -57,7 +56,7 @@ public class MsgReplyServiceImpl implements MsgReplyService {
         try {
             List<MsgReplyRule> rules = msgReplyRuleService.getMatchedRules(appid, exactMatch, keywords);
             if (rules.isEmpty()) {
-                return false;
+                rules.add(msgReplyRuleService.getById(-1));
             }
             long delay = 0;
             for (MsgReplyRule rule : rules) {

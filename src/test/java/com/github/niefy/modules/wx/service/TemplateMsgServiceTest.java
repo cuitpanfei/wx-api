@@ -18,6 +18,11 @@ class TemplateMsgServiceTest {
     @Autowired
     TemplateMsgService templateMsgService;
 
+    @Test
+    void tes(){
+        System.out.println("不发货地区".substring(0, 2));
+    }
+
     /**
      * 发送模板消息给用户
      * 添加消息模板指引：https://kf.qq.com/faq/170209E3InyI170209nIF7RJ.html

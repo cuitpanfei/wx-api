@@ -7,6 +7,7 @@ import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.text.CharSequenceUtil;
 import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.core.util.RandomUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
 import cn.hutool.extra.qrcode.QrCodeUtil;
 import cn.hutool.http.ContentType;
@@ -20,6 +21,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.github.niefy.modules.wx.entity.Article;
+import com.github.niefy.modules.wx.entity.MsgReplyRule;
 import com.github.niefy.modules.wx.entity.WxAccount;
 import com.github.niefy.modules.wx.event.QrCodeScanState;
 import com.github.niefy.modules.wx.form.draft.AppmsgAlbumInfo;
@@ -28,6 +30,7 @@ import com.github.niefy.modules.wx.form.draft.MultiItem;
 import com.github.niefy.modules.wx.form.draft.NewsItem;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import nonapi.io.github.classgraph.json.JSONUtils;
 import org.jsoup.Jsoup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,10 +70,20 @@ public class WxMpHtmlPageApiUtil {
     public static final String PHOTO_GALLERY = WxHttpUtil.BASE_URL + "/photogallery?action=search&query=${QUERY}&type=1&limit=16&last_seq=0&token=${TOKEN}&lang=zh_CN&f=json&ajax=1";
     public static final String UPLOAD_IMG_TO_CDN = WxHttpUtil.BASE_URL + "/uploadimg2cdn?lang=zh_CN&token=${TOKEN}&t=";
 
+    /**
+     * 关键词回复》自动回复》添加回复
+     */
+    public static final String SET_REPLY_RULE_URL = WxHttpUtil.MP_WEIXIN_QQ_COM + "/advanced/setreplyrule?cgi=setreplyrule&fun=save&t=ajax-response&token=${TOKEN}&lang=zh_CN";
+    /**
+     * 关键词回复》自动回复》删除回复
+     */
+    public static final String DEL_REPLY_RULE_URL = WxHttpUtil.MP_WEIXIN_QQ_COM + "/advanced/setreplyrule?cgi=setreplyrule&fun=del&t=ajax-response&token=${TOKEN}&lang=zh_CN";
+
     private static final String MP_PROFILE_CODE_TEMPLATE = "<section class=\"mp_profile_iframe_wrp\"><mpprofile " +
             "class=\"js_uneditable custom_select_card mp_profile_iframe\" data-pluginname=\"mpprofile\" " +
             "data-id=\"${ID}\" data-headimg=\"${HEAD_IMG}\" data-nickname=\"${NICK_NAME}\" data-alias=\"${ALIAS}\" " +
             "data-signature=\"${SIGNATURE}\" data-from=\"0\" contenteditable=\"false\"></mpprofile></section>";
+
 
     private static String mpProfileCode(WxAccount wxAccount) {
         JSONObject mpProfile = JSONObject.parseObject(mpProfile(wxAccount));
@@ -812,6 +825,64 @@ public class WxMpHtmlPageApiUtil {
      */
     public static String photoGallery(WxAccount wxAccount, String query) {
         return WxHttpUtil.get(wxAccount, PHOTO_GALLERY.replace("${QUERY}", query));
+    }
+
+
+    /**
+     * 添加自动回复规则到公众号
+     * @param wxAccount
+     * @param rule 自动回复规则
+     * @return
+     */
+    public static String setReplyRule(WxAccount wxAccount, MsgReplyRule rule) {
+        return setReplyRule(wxAccount,"",rule);
+    }
+    /**
+     * 删除公众号中的自动回复规则
+     * @param wxAccount
+     * @param wxRuleId 公众号中的自动回复规则的id
+     * @return
+     */
+    public static String delReplyRule(WxAccount wxAccount, String wxRuleId) {
+        Map<String,Object> body = new MapUtils()
+                .put("token",wxAccount.getHtmlPageToken())
+                .put("lang","zh_CN")
+                .put("f","json")
+                .put("ajax",1)
+                .put("replytype","smartreply")
+                .put("ruleid",wxRuleId);
+        return WxHttpUtil.postForm(wxAccount,DEL_REPLY_RULE_URL,body);
+    }
+
+    /**
+     * 修改公众号中的自动回复规则
+     * @param wxAccount
+     * @param wxRuleId 公众号中的自动回复规则的id
+     * @param rule 自动回复规则
+     * @return
+     */
+    public static String setReplyRule(WxAccount wxAccount,String wxRuleId, MsgReplyRule rule) {
+        List<String> matchValues = StrUtil.splitTrim(rule.getMatchValue(), ',');
+        Map<String,Object> body = new MapUtils().put("token",wxAccount.getHtmlPageToken())
+                .put("lang","zh_CN")
+                .put("f","json")
+                .put("ajax",1)
+                .put("replytype","smartreply")
+                .put("rulename",rule.getRuleName())
+                .put("allreply",1)
+                .put("replycnt",1)
+                .put("type0",1)
+                .put("fileid0","undefined")
+                .put("content0",rule.getReplyContent())
+                .put("keywordcnt",matchValues.size());
+        for (int i = 0; i < matchValues.size(); i++) {
+            body.put("keyword"+i,matchValues.get(i));
+            body.put("matchmode"+i,0);
+        }
+        if (StrUtil.isNotEmpty(wxRuleId)){
+            body.put("ruleid",wxRuleId);
+        }
+       return WxHttpUtil.postForm(wxAccount,SET_REPLY_RULE_URL,body);
     }
 
     /**
